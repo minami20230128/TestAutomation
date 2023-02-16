@@ -44,7 +44,7 @@ void read(std::string& filepath)
             }
             if(IsI && pLine[i] == 'f')
             {
-                conditionals.push_back(line);
+                conditionals.push_back(pLine - 1);
                 break;
             }
             if(*pLine != char(0x09) && *pLine != char(0x20))
@@ -63,11 +63,6 @@ void write(std::string& filepath)
     std::ofstream file(filepath);
     for(auto&& conditional : conditionals)
     {
-        auto pos = conditional.find("i");
-        if(pos != 0)
-        {
-            auto result = conditional.substr(pos, conditional.length() - pos);
-            file << result << std::endl;
-        }
+        file << conditional << std::endl;
     }
 }
