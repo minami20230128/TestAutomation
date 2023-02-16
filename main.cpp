@@ -63,6 +63,11 @@ void write(std::string& filepath)
     std::ofstream file(filepath);
     for(auto&& conditional : conditionals)
     {
-        file << conditional << std::endl;
+        auto pos = conditional.find("i");
+        if(pos != 0)
+        {
+            auto result = conditional.substr(pos, conditional.length() - pos);
+            file << result << std::endl;
+        }
     }
 }
