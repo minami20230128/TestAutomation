@@ -6,7 +6,9 @@
 
 void read(std::string& filepath);
 void write(std::string& filepath);
-void findIf(std::string line);
+void findIf(std::string& line);
+bool findElseIf(std::string& line);
+void findElse(std::string& line);
 std::vector<std::string> conditionals;
 
 int main()
@@ -30,7 +32,11 @@ void read(std::string& filepath)
     while(std::getline(file, line))
     {
         findIf(line);
-        findElseIf(line);
+        if(!findElseIf(line))
+        {
+            findElse(line);
+        }
+
     }
 }
 
@@ -43,7 +49,7 @@ void write(std::string& filepath)
     }
 }
 
-void findIf(std::string line)
+void findIf(std::string& line)
 {
     const char* pLine;
     pLine = line.c_str();
@@ -73,9 +79,20 @@ void findIf(std::string line)
     }
 }
 
-void findElseIf(std::string line)
+bool findElseIf(std::string& line)
 {
     auto idx = line.find("else if");
+    if(idx != std::string::npos)
+    {
+        conditionals.push_back(line.substr(idx, line.length() - idx));
+        return true;
+    }
+    return false;
+}
+
+void findElse(std::string& line)
+{
+    auto idx = line.find("else");
     if(idx != std::string::npos)
     {
         conditionals.push_back(line.substr(idx, line.length() - idx));
