@@ -3,9 +3,12 @@
 #include <iostream>
 #include <vector>
 #include <stdio.h>
+#include "excel.h"
+#include <memory>
 
 void read(std::string& filepath);
 void write(std::string& filepath);
+void writeExcel(std::string& filepath);
 void findIf(std::string& line);
 bool findElseIf(std::string& line);
 void findElse(std::string& line);
@@ -36,7 +39,6 @@ void read(std::string& filepath)
         {
             findElse(line);
         }
-
     }
 }
 
@@ -47,6 +49,13 @@ void write(std::string& filepath)
     {
         file << conditional << std::endl;
     }
+}
+
+void writeExcel(std::string& filepath)
+{
+    auto excel = std::make_unique<Excel>();
+    excel->createFile();
+    excel->writeCell("hello", 1, "A");
 }
 
 void findIf(std::string& line)
