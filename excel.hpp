@@ -9,12 +9,12 @@ class Excel
     public:
     void createFile();
     void writeCell(std::string val, int ln, std::string col);
-    void saveFile(std::string filepath);
+    void saveFile();
 };
 
 void Excel::createFile()
 {
-    document.create("test.xlsx");
+    document.create("/Users/hirataminami/Desktop/testAutomation/test.xlsx");
     worksheet = document.workbook().worksheet("Sheet1");
 }
 
@@ -24,8 +24,8 @@ void Excel::writeCell(std::string val, int ln, std::string col)
     worksheet.cell(position).value() = val;
 }
 
-void Excel::saveFile(std::string filepath)
+void Excel::saveFile()
 {
-    document.saveAs(filepath);
+    document.save();
 }
 

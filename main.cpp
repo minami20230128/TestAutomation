@@ -23,6 +23,8 @@ int main()
     
     read(readfilepath);
     write(writefilepath);
+    std::string excelfilepath = "/Users/hirataminami/Desktop/testAutomation";
+    writeExcel(excelfilepath);
 
     return 0;
 }
@@ -56,6 +58,7 @@ void writeExcel(std::string& filepath)
     auto excel = std::make_unique<Excel>();
     excel->createFile();
     excel->writeCell("hello", 1, "A");
+    excel->saveFile();
 }
 
 void findIf(std::string& line)
