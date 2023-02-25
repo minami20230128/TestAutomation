@@ -9,39 +9,38 @@
 #define HEADERROW 4
 #define DATAROW 5
 
-void read(std::string& filepath);
+void read();
 void writeExcel();
 void writeHeader();
-void writeModule(std::string readfilepath);
+void writeModule();
 bool findIf(std::string& line);
 bool findElseIf(std::string& line);
 void findElse(std::string& line);
 std::vector<std::string> conditionals;
 std::unique_ptr<Excel> excel;
+std::string readfilepath;
+std::string writefilepath;
 
 int main()
 {
     printf("%s", "input filepath to read\n");
-    std::string readfilepath;
     std::cin >> readfilepath;
     printf("%s", "input filepath to write\n");
-    std::string writefilepath;
     std::cin >> writefilepath;
     
     excel = std::make_unique<Excel>();
     excel->createFile(writefilepath);
-    read(readfilepath);
-    //writeModule(readfilepath);
+    read();
     writeHeader();
     writeExcel();
 
     return 0;
 }
 
-void read(std::string& filepath)
+void read()
 {
     std::string line;
-    std::ifstream file(filepath);
+    std::ifstream file(readfilepath);
 
     while(std::getline(file, line))
     {
@@ -73,7 +72,12 @@ void writeExcel()
             excel->writeCell("false", row + 1, "E");
             row += 2;
         }
+        
     }
+
+    int idx = readfilepath.rfind("/");
+    std::string modulename = readfilepath.substr(idx + 1);
+    excel->writeCell(modulename, DATAROW, "B");
     
     excel->saveFile();
 }
@@ -88,14 +92,6 @@ void writeHeader()
     excel->writeCell("備考", HEADERROW, "G");
     excel->writeCell("担当者", HEADERROW, "H");
     excel->writeCell("実施日", HEADERROW, "I");
-}
-
-void writeModule(std::string readfilepath)
-{
-    int idx = readfilepath.rfind("/");
-    printf("%d", idx);
-    std::string modulename = readfilepath.substr(idx + 1);
-    excel->writeCell(modulename, DATAROW, "B");
 }
 
 bool findIf(std::string& line)
@@ -147,7 +143,7 @@ bool findElseIf(std::string& line)
     auto idx = str.find("else if");
     if(idx == 0)
     {
-        conditionals.push_back(line.substr(idx, line.length() - idx));
+        conditionals.push_back(str.substr(idx, str.length() - idx));
         return true;
     }
     return false;
@@ -170,10 +166,10 @@ void findElse(std::string& line)
     }
 
     std::string str(pLine); 
-    auto idx = line.find("else");
+    auto idx = str.find("else");
     if(idx == 0)
     {
-        conditionals.push_back(line.substr(idx, line.length() - idx));
+        conditionals.push_back(str);
     }
 }
 
