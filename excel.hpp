@@ -7,14 +7,14 @@ class Excel
     OpenXLSX::XLWorksheet worksheet;
 
     public:
-    void createFile();
+    void createFile(std::string filepath);
     void writeCell(std::string val, int ln, std::string col);
     void saveFile();
 };
 
-void Excel::createFile()
+void Excel::createFile(std::string filepath)
 {
-    document.create("/Users/hirataminami/Desktop/testAutomation/test.xlsx");
+    document.create(filepath);
     worksheet = document.workbook().worksheet("Sheet1");
 }
 
