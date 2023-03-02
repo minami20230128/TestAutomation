@@ -4,8 +4,11 @@
 #include <vector>
 #include <stdio.h>
 #include "excel.hpp"
+#include "pipe.hpp"
 #include <memory>
+#include <unistd.h>
 
+#define HASHROW 2
 #define HEADERROW 4
 #define DATAROW 5
 
@@ -13,12 +16,15 @@ void read();
 void writeExcel();
 void writeHeader();
 void writeModule();
+void getGitHash();
 bool findConditional(std::string& line, const char* target);
 void findMethod(std::string& line);
+
 std::vector<std::pair<std::string, std::vector<std::string>>> methods;
 std::unique_ptr<Excel> excel;
 std::string readfilepath;
 std::string writefilepath;
+std::string hash;
 
 int main()
 {
@@ -29,12 +35,7 @@ int main()
     excel = std::make_unique<Excel>();
     excel->createFile(writefilepath);
     read();
-    auto itr = methods.begin();
-    while(itr != methods.end())
-    {
-        std::cout << itr->first << std::endl;
-        itr++;
-    }
+    getGitHash();
     writeHeader();
     writeExcel();
 
@@ -91,6 +92,9 @@ void writeExcel()
     int idx = readfilepath.rfind("/");
     std::string modulename = readfilepath.substr(idx + 1);
     excel->writeCell(modulename, DATAROW, "B");
+
+    excel->writeCell("git hash:" + hash, HASHROW, "B");
+
     excel->saveFile();
 }
 
@@ -179,4 +183,15 @@ bool findConditional(std::string& line, const char* target)
     }
 
     return false;
+}
+
+void getGitHash()
+{
+    auto pipe = std::make_unique<Pipe>();
+    int idx = readfilepath.rfind("/");
+    std::string directry = readfilepath.substr(0, idx);
+    std::cout << directry << std::endl;
+    chdir(directry.c_str());
+    hash = pipe->executeCommand("git show --format='%H' --no-patch");
+    std::cout << hash << std::endl;
 }
