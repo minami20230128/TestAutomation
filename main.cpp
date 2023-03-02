@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include "excel.hpp"
 #include <memory>
-#include <map>
 
 #define HEADERROW 4
 #define DATAROW 5
@@ -14,13 +13,9 @@ void read();
 void writeExcel();
 void writeHeader();
 void writeModule();
-void writeMethod();
-bool findIf(std::string& line, int linenumber);
-bool findElseIf(std::string& line, int linenumber);
-void findElse(std::string& line, int linenumber);
-void findMethod(std::string& line, int linenumber);
-std::map<int, std::string> conditionals;
-std::map<int, std::string> methods;
+bool findConditional(std::string& line, const char* target);
+void findMethod(std::string& line);
+std::vector<std::pair<std::string, std::vector<std::string>>> methods;
 std::unique_ptr<Excel> excel;
 std::string readfilepath;
 std::string writefilepath;
@@ -31,26 +26,17 @@ int main()
     std::cin >> readfilepath;
     printf("%s", "input filepath to write\n");
     std::cin >> writefilepath;
-    
     excel = std::make_unique<Excel>();
     excel->createFile(writefilepath);
     read();
-    auto itr = conditionals.begin();
-    while(itr != conditionals.end())
+    auto itr = methods.begin();
+    while(itr != methods.end())
     {
-        std::cout << itr->first << ":" << itr->second << std::endl;
+        std::cout << itr->first << std::endl;
         itr++;
     }
-
-    auto methodItr = methods.begin();
-    while(methodItr != methods.end())
-    {
-        std::cout << methodItr->first << ":" << methodItr->second << std::endl;
-        methodItr++;
-    }
     writeHeader();
-    //writeMethod();
-    writeExcel();
+    //writeExcel();
 
     return 0;
 }
@@ -59,63 +45,40 @@ void read()
 {
     std::string line;
     std::ifstream file(readfilepath);
-    int linenumber = 1;
 
     while(std::getline(file, line))
     {
-        if(!findIf(line, linenumber))
+        if(!findConditional(line, "if"))
         {
-            if(!findElseIf(line, linenumber))
+            if(!findConditional(line, "else if"))
             {
-                 findElse(line, linenumber);
+                findConditional(line, "else");
             }
         }
-        findMethod(line, linenumber);
-        linenumber++;
+        findMethod(line);
     }
 }
 
 void writeExcel()
 {
-    auto itr = conditionals.begin();
-    auto methodItr = methods.begin();
+    auto itr = methods.begin();
     int row = DATAROW;
-    excel->writeCell(methodItr->second, row, "C");
-
-    // while(itr != conditionals.end() && methodItr != methods.end())
-    // {
-    //     excel->writeCell(methodItr->second, row, "C");
-    //     if(methodItr != methods.end()) methodItr++;
-
-    //     if(itr->first < methodItr->first)
-    //     {
-    //         excel->writeCell(itr->second, row, "D");
-    //         itr++;
-    //     }
-    //     row++;
-    // }
+    while(itr != methods.end())
+    {   
+        excel->writeCell(itr->first, row, "C");
+        for(auto&& conditional : itr->second)
+        {
+            std::cout << itr->first << ":" << conditional << std::endl;
+            excel->writeCell(itr->first, row, "C");
+            row++;
+        }
+        itr++;
+    }
 
     int idx = readfilepath.rfind("/");
     std::string modulename = readfilepath.substr(idx + 1);
     excel->writeCell(modulename, DATAROW, "B");
     excel->saveFile();
-}
-
-void writeMethod()
-{
-    int row = DATAROW;
-
-    auto itr = conditionals.begin();
-    auto methodItr = methods.begin();
-    while(itr != conditionals.end())
-    {
-        if(itr->first >= methodItr->first)//条件式の行数がメソッドの行数より大きかったら
-        {
-            excel->writeCell(itr->second, DATAROW, "C");
-            methodItr++;
-        }
-        itr++;
-    }
 }
 
 void writeHeader()
@@ -130,7 +93,7 @@ void writeHeader()
     excel->writeCell("実施日", HEADERROW, "I");
 }
 
-void findMethod(std::string& line, int linenumber)
+void findMethod(std::string& line)
 {
     const char* pLine = line.c_str();
 
@@ -143,7 +106,7 @@ void findMethod(std::string& line, int linenumber)
         pLine++;
     }
 
-    std::string str(pLine); 
+    std::string str(pLine);
     if(str.find("class") != std::string::npos)
     {
         return;
@@ -159,6 +122,11 @@ void findMethod(std::string& line, int linenumber)
         return;
     }
 
+    if(str.find("for") != std::string::npos)
+    {
+        return;
+    }
+
     if(str.find(char(0x20)) == -1)
     {
         return;
@@ -169,38 +137,12 @@ void findMethod(std::string& line, int linenumber)
         return;
     }
 
-    methods[linenumber] = str;
+    std::vector<std::string> second;
+    methods.push_back(std::make_pair(str, second));
+    std::cout << str << std::endl;
 }
 
-bool findIf(std::string& line, int linenumber)
-{
-    const char* pLine = line.c_str();
-    bool IsI = false;
-    
-    while(pLine != NULL)
-    {
-        if(*pLine == 'i')
-        {
-            IsI = true;
-            pLine++;
-            continue;
-        }
-        if(IsI && *pLine == 'f')
-        {
-            conditionals[linenumber] = pLine - 1;
-            return true;
-        }
-        if(*pLine != char(0x09) && *pLine != char(0x20))//タブかスペースなら探索を続ける
-        {
-            return false;
-        }
-        pLine++;
-    }
-
-    return false;
-}
-
-bool findElseIf(std::string& line, int linenumber)
+bool findConditional(std::string& line, const char* target)
 {
     const char* pLine = line.c_str();
     
@@ -212,36 +154,15 @@ bool findElseIf(std::string& line, int linenumber)
         }
         pLine++;
     }
-    
+
     std::string str(pLine); 
-    auto idx = str.find("else if");
+    auto idx = str.find(target);
     if(idx == 0)
     {
-        conditionals[linenumber] = str.substr(idx, str.length() - idx);
+        methods[methods.size()].second.push_back(str.substr(idx, str.length() - idx));
+        std::cout << methods[methods.size()].second[methods.size()] << std::endl;
         return true;
     }
+
     return false;
 }
-
-void findElse(std::string& line, int linenumber)
-{
-    const char* pLine = line.c_str();
-    
-    while(pLine != NULL)
-    {
-
-        if(*pLine != char(0x09) && *pLine != char(0x20))
-        {
-            break;
-        }
-        pLine++;
-    }
-
-    std::string str(pLine); 
-    auto idx = str.find("else");
-    if(idx == 0)
-    {
-        conditionals[linenumber] = str;
-    }
-}
-
