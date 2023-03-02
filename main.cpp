@@ -49,17 +49,61 @@ void read()
 
     while(std::getline(file, line))
     {
-        if(!findConditional(line, "if"))
+        if(findConditional(line, "if"))
         {
-            if(!findConditional(line, "else if"))
-            {
-                findConditional(line, "else");
-            }
+            continue;
         }
-        findConditional(line, "while");
-        findConditional(line, "try");
-        findConditional(line, "catch");
-        findConditional(line, "finally");
+
+        if(findConditional(line, "else if"))
+        {
+            continue;
+        }
+
+        if(findConditional(line, "else"))
+        {
+            continue;
+        }
+
+        if(findConditional(line, "while"))
+        {
+            continue;
+        }
+
+        if(findConditional(line, "try"))
+        {
+            continue;
+        }
+
+        if(findConditional(line, "catch"))
+        {
+            continue;
+        }
+
+        if(findConditional(line, "else"))
+        {
+            continue;
+        }
+
+        if(findConditional(line, "finally"))
+        {
+            continue;
+        }
+
+        if(findConditional(line, "switch"))
+        {
+            continue;
+        }
+
+        if(findConditional(line, "case"))
+        {
+            continue;
+        }
+
+        if(findConditional(line, "default"))
+        {
+            continue;
+        }
+
         findMethod(line);
     }
 }
@@ -129,16 +173,6 @@ void findMethod(std::string& line)
         return;
     }
 
-    if(str.find("if") != std::string::npos)
-    {
-        return;
-    }
-
-    if(str.find("while") != std::string::npos)
-    {
-        return;
-    }
-
     if(str.find("for") != std::string::npos)
     {
         return;
@@ -166,16 +200,21 @@ bool findConditional(std::string& line, const char* target)
     
     while(pLine != NULL)
     {
-        if(*pLine != char(0x09) && *pLine != char(0x20))
+        if(*pLine != char(0x09) && *pLine != char(0x20))//スペースとタブを切り詰める
         {
             break;
         }
         pLine++;
     }
 
-    std::string str(pLine); 
-    auto idx = str.find(target);
-    if(idx == 0)
+    std::string str(pLine);
+    int idx;
+    if((idx = str.find("//")) != std::string::npos)//コメントを削除
+    {
+        str = readfilepath.substr(0, idx);
+    }
+
+    if((idx = str.find(target)) == 0)//必ず行頭にあるときのみ
     {
         methods[methods.size() - 1].second.push_back(str.substr(idx, str.length() - idx));
         std::cout << methods[methods.size()-1].second[methods[methods.size()-1].second.size()-1] << std::endl;
