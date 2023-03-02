@@ -36,7 +36,7 @@ int main()
         itr++;
     }
     writeHeader();
-    //writeExcel();
+    writeExcel();
 
     return 0;
 }
@@ -61,18 +61,21 @@ void read()
 
 void writeExcel()
 {
-    auto itr = methods.begin();
     int row = DATAROW;
-    while(itr != methods.end())
+    for(auto&& method : methods)
     {   
-        excel->writeCell(itr->first, row, "C");
-        for(auto&& conditional : itr->second)
+        std::cout << row << ":" << method.first << std::endl;
+        excel->writeCell(method.first, row, "C");
+        if(!method.second.empty())
         {
-            std::cout << itr->first << ":" << conditional << std::endl;
-            excel->writeCell(itr->first, row, "C");
+            for(auto&& conditional : method.second)
+            {
+                std::cout << row << ":" << conditional << std::endl;
+                excel->writeCell(method.first, row, "D");
+                row++;
+            }
             row++;
         }
-        itr++;
     }
 
     int idx = readfilepath.rfind("/");
@@ -137,9 +140,10 @@ void findMethod(std::string& line)
         return;
     }
 
-    std::vector<std::string> second;
+    std::vector<std::string> second{};
     methods.push_back(std::make_pair(str, second));
-    std::cout << str << std::endl;
+    std::cout << methods.size() << std::endl;
+    std::cout << methods[methods.size()-1].first << std::endl;
 }
 
 bool findConditional(std::string& line, const char* target)
@@ -159,8 +163,8 @@ bool findConditional(std::string& line, const char* target)
     auto idx = str.find(target);
     if(idx == 0)
     {
-        methods[methods.size()].second.push_back(str.substr(idx, str.length() - idx));
-        std::cout << methods[methods.size()].second[methods.size()] << std::endl;
+        methods[methods.size() - 1].second.push_back(str.substr(idx, str.length() - idx));
+        std::cout << methods[methods.size()-1].second[methods[methods.size()-1].second.size()-1] << std::endl;
         return true;
     }
 
