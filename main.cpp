@@ -55,6 +55,10 @@ void read()
                 findConditional(line, "else");
             }
         }
+        findConditional(line, "while");
+        findConditional(line, "try");
+        findConditional(line, "catch");
+        findConditional(line, "finally");
         findMethod(line);
     }
 }
@@ -71,7 +75,13 @@ void writeExcel()
             for(auto&& conditional : method.second)
             {
                 std::cout << row << ":" << conditional << std::endl;
-                excel->writeCell(method.first, row, "D");
+                excel->writeCell(conditional, row, "D");
+                if(conditional.find("if") != std::string::npos)
+                {
+                    excel->writeCell("true", row, "E");
+                    row++;
+                    excel->writeCell("false", row, "E");
+                }
                 row++;
             }
             row++;
