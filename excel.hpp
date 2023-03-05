@@ -7,15 +7,24 @@ class Excel
     OpenXLSX::XLWorksheet worksheet;
 
     public:
+    void openFile(std::string filepath);
     void createFile(std::string filepath);
     void writeCell(std::string val, int ln, std::string col);
     void saveFile();
 };
 
+void Excel::openFile(std::string filepath)
+{
+    document.open(filepath);
+    int idx = filepath.rfind("/");
+    std::string sheetname = filepath.substr(idx + 1);
+    worksheet = document.workbook().worksheet(sheetname);
+}
+
 void Excel::createFile(std::string filepath)
 {
     document.create(filepath);
-    worksheet = document.workbook().worksheet("Sheet1");
+    worksheet = document.workbook().addWorksheet("Sheet1");
 }
 
 void Excel::writeCell(std::string val, int ln, std::string col)

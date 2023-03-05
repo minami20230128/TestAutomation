@@ -17,6 +17,7 @@ void writeExcel();
 void writeHeader();
 void writeModule();
 void getGitHash();
+bool isExistFile(std::string path);
 bool findConditional(std::string& line, const char* target);
 void findMethod(std::string& line);
 
@@ -33,13 +34,38 @@ int main()
     printf("%s", "input filepath to write\n");
     std::cin >> writefilepath;
     excel = std::make_unique<Excel>();
-    excel->createFile(writefilepath);
+    if(!isExistFile(writefilepath))
+    {
+        excel->createFile(writefilepath);
+    }
+    else
+    {
+        excel->openFile(writefilepath);
+    }
+    
     read();
     getGitHash();
     writeHeader();
     writeExcel();
 
     return 0;
+}
+
+bool isExistFile(std::string path)
+{
+    auto pipe = std::make_unique<Pipe>();
+    int idx = readfilepath.rfind("/");
+    std::string directry = readfilepath.substr(0, idx);
+    std::cout << directry << std::endl;
+    chdir(directry.c_str());
+    auto files = pipe->executeCommand("ls");
+    std::cout << files << std::endl;
+    if(files.find(path) != std::string::npos)
+    {
+        return true;
+    }
+
+    return false;
 }
 
 void read()
